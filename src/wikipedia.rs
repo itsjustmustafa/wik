@@ -2,6 +2,7 @@ use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, sync::Arc, thread};
 use tui::text::{Span, Spans};
+use std::collections::HashMap;
 
 use crate::{
     app::App,
@@ -13,46 +14,26 @@ use crate::{
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SearchResult {
     pub title: String,
-    pub snippet: String,
+    pub extract: String,
+    pub index: i32,
 }
 
-const OPENING_TAG: &str = "<span class=\"searchmatch\">";
-const CLOSING_TAG: &str = "</span>";
 
 impl SearchResult {
     pub fn highlighted_snippets(search_results: &SearchResult) -> Spans {
-        // The search results from the Wikipedia API encloses the parts of the snippet
-        // that matches the search term with the values in OPENING_TAG and then CLOSING_TAG,
-        // This provides the snippet with the matches highlighted.
-
         let mut spans = Vec::new();
-        let parts: Vec<&str> = search_results.snippet.split(OPENING_TAG).collect();
+        spans.push(Span::styled(
+            search_results.extract.clone(),
+            unhighlighted_snippet_style(),
+        ));
 
-        for (i, &part) in parts.iter().enumerate() {
-            // the strings in `part` will start with the highlighted text, followed by closing tag, and then rest of text
-            // unless its the first part, in which case its just the starting unhighlighted bit
-            if i > 0 {
-                let highlighted_part = part.split(CLOSING_TAG).next().unwrap_or("");
-                let remaining_part = part.split(CLOSING_TAG).nth(1).unwrap_or("");
-                spans.push(Span::styled(
-                    highlighted_part.to_string(),
-                    highlighted_snippet_style(),
-                ));
-                spans.push(Span::styled(
-                    remaining_part.to_string(),
-                    unhighlighted_snippet_style(),
-                ));
-            } else {
-                spans.push(Span::styled(part, unhighlighted_snippet_style()));
-            }
-        }
         return Spans::from(spans);
     }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Query {
-    search: Vec<SearchResult>,
+    pages: HashMap<i32,SearchResult>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -65,7 +46,7 @@ pub fn get_wikipedia_query(
     shared_caching_session: Shared<CachingSession>,
 ) -> Result<Vec<SearchResult>, Box<dyn Error>> {
     let url = format!(
-        "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={}&format=json",
+        "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&generator=search&gsrsearch={}&exlimit=max&exintro&explaintext=1&exsectionformat=plain",
         query
     );
     let mut caching_session = shared_caching_session.lock().unwrap();
@@ -84,7 +65,11 @@ pub fn get_wikipedia_query(
     };
 
     match query_response {
-        Some(response) => Ok(response.query.search),
+        Some(response) => {
+            let mut sorted_response: Vec<SearchResult> = response.query.pages.values().cloned().collect();
+            sorted_response.sort_by(|a, b| a.index.cmp(&b.index));
+            return Ok(sorted_response);
+        }
         None => Err("Could not get the query".into()),
     }
 }
