@@ -13,7 +13,7 @@ use caching::CachingSession;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{size, disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use htmd::HtmlToMarkdown;
 use std::{
@@ -23,18 +23,33 @@ use std::{
 };
 use std::{fs::File, io};
 use tui::backend::CrosstermBackend;
-use tui::Terminal;
+use tui::layout::Rect;
+use tui::{Terminal, TerminalOptions, Viewport};
+use dialoguer::Input;
 
 const APP_REFRESH_TIME_MILLIS: u64 = 16;
+const APP_DEFAULT_MARGIN: u16 = 2;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Setup terminal
+    let mut fixed_size = false;
+    let mut size = size()?;
+    let mut margin:u16 = APP_DEFAULT_MARGIN;
+    if size.0 < 1 || size.1 < 1 {
+        fixed_size = true;
+        size = prompt_for_size()?;
+        margin = get_dimension("margin size");
+    }
+
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-
+    let area = Rect::new(0, 0, size.0, size.1);
+    let mut terminal = match fixed_size {
+        true => Terminal::with_options(backend, TerminalOptions{viewport: Viewport::fixed(area)})?,
+        false => Terminal::new(backend)?,
+    };
     let mut app = App::new();
     app.is_running = true;
 
@@ -43,7 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         if !app.is_running {
             break;
         }
-        terminal.draw(|f| ui::draw(f, &app))?;
+        terminal.draw(|f| ui::draw(f, &app, margin))?;
 
         if event::poll(Duration::from_millis(APP_REFRESH_TIME_MILLIS))? {
             if let Event::Key(key) = event::read()? {
@@ -238,3 +253,27 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+fn prompt_for_size() -> Result<(u16, u16), std::io::Error> {
+    eprintln!("Unable to automatically determine console dimensions.");
+    let width = get_dimension("columns");
+    let height = get_dimension("rows");
+    return Ok((width, height))
+}
+
+fn get_dimension(dimension_name:&str) -> u16 {
+    loop {
+        let input: String = Input::new()
+            .with_prompt(format!("Enter {}", dimension_name))
+            .interact_text()
+            .unwrap();
+        match input.as_str().parse::<u16>() {
+            Ok(dimension) => return dimension,
+            Err(_e) => {
+                eprintln!("Invalid input, please enter a positive integer.");
+                continue;
+            },
+        };
+    };
+}
+
