@@ -51,10 +51,9 @@ pub fn wrapped_iter_enumerate<T>(vec: &Vec<T>, start: usize) -> impl Iterator<It
     })
 }
 
-pub const wik_title: &str = r"
-              _   __       
-             (_) [  |  _   
- _   _   __  __   | | / ]  
-[ \ [ \ [  ][  |  | '' <   
- \ \/\ \/ /  | |  | |`\ \  
-  \__/\__/  [___][__|  \_] ";
+pub const WIK_TITLE: &str = r"
+▀██ ▀██ ▀█▀ ▀█▀  ██  ▀██     
+  ██  ███   █   ▄▄▄   ██  ▄▄ 
+   ██  ██  █     ██   ██ ▄▀  
+    ███ ███      ██   ██▀█▄  
+     █   █      ▄██▄ ▄██▄ ██▄";

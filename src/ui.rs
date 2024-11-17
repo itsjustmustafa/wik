@@ -4,7 +4,7 @@ use std::sync::{MutexGuard, TryLockError, TryLockResult};
 use crate::app::{ActionItem, ActionMenu, App, AppState, MenuState, TypeableState};
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
-use crate::utils::{wik_title, wrapped_iter_enumerate};
+use crate::utils::{wrapped_iter_enumerate, WIK_TITLE};
 use crate::widgets::ScrollBar;
 use crate::wikipedia::SearchResult;
 use digest::typenum::Mod;
@@ -309,25 +309,25 @@ fn draw_credit<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
 }
 
 fn draw_title<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
-    let full_area = centered_rect_by_lengths(30, 12, frame.size());
+    let full_area = centered_rect_by_lengths(40, 11, frame.size());
 
     let title_areas = Layout::default()
-        .constraints(vec![Constraint::Min(0), Constraint::Length(2)])
+        .constraints(vec![Constraint::Min(0), Constraint::Length(3)])
         .direction(Direction::Vertical)
         .split(full_area);
 
     frame.render_widget(
-        Paragraph::new(wik_title)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Double),
-            )
+        Paragraph::new(WIK_TITLE)
+            // .block(
+            //     Block::default()
+            //         .borders(Borders::ALL)
+            //         .border_type(BorderType::Double),
+            // )
             .alignment(Alignment::Center),
         title_areas[0],
     );
 
-    let input_widget = search_box_widget(&app, &app.title, String::from(""));
+    let input_widget = search_box_widget(&app, &app.title, String::from("Search..."));
     frame.render_widget(input_widget, title_areas[1]);
 }
 
@@ -379,23 +379,7 @@ fn draw_article<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
                     })
                     .collect()
             }
-            /*
-            Vec<Span> {
-                if formatted_span.is_break {
-                    vec![Span::raw("\n")]
-                } else if formatted_span.is_heading {
-                    vec![Span::styled(
-                        formatted_span.text.clone(),
-                        Style::default().add_modifier(Modifier::BOLD),
-                    )]
-                } else if let Some(link) = &formatted_span.link {
-                    vec![Span::raw(formatted_span.text.clone())]
-                } else {
-                    vec![Span::raw(formatted_span.text.clone())]
-                }
-            })
-            .collect::<Vec<Span>>()
-            */
+
             true => vec![Spans::from(vec![Span::raw("Loading...")])],
         },
         Err(_) => vec![Spans::from(vec![Span::raw("Error loading page...")])],

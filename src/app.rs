@@ -1,3 +1,5 @@
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
 use crate::utils::{create_shared, remainder, shared_copy};
@@ -127,6 +129,30 @@ pub trait TypeableState {
             }
         }
         self.trigger_text_focus();
+    }
+    fn handle_key(&mut self, keyevent: KeyEvent) {
+        match keyevent.code {
+            KeyCode::Char(c) => {
+                // Append character to input
+                self.type_char(c);
+            }
+            KeyCode::Backspace => {
+                self.backspace();
+            }
+            KeyCode::Left if keyevent.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.move_cursor_to_start();
+            }
+            KeyCode::Left => {
+                self.move_cursor_one_step(CursorDirection::LEFT);
+            }
+            KeyCode::Right if keyevent.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.move_cursor_to_end();
+            }
+            KeyCode::Right => {
+                self.move_cursor_one_step(CursorDirection::RIGHT);
+            }
+            _ => {}
+        }
     }
 }
 
@@ -381,6 +407,7 @@ impl App {
                 );
             }
         }
+        self.search.text_box_is_highlighted = false;
     }
 
     pub fn view_selected_article(&mut self) {

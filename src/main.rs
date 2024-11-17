@@ -51,8 +51,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                     AppState::Title => match key.code {
                         KeyCode::Enter => {
                             app.state = AppState::Search;
+                            app.search.input = app.title.input.clone();
+                            app.load_wikipedia_search_query();
                         }
-                        _ => {}
+                        KeyCode::Esc => {
+                            app.is_running = false;
+                        }
+                        _ => {
+                            app.title.handle_key(key);
+                        }
                     },
                     AppState::Search => match key.code {
                         KeyCode::Esc => {
@@ -63,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             // Just-in-case exit
                             app.is_running = false
                         }
-                        KeyCode::Char(c) => {
+                        /* KeyCode::Char(c) => {
                             // Append character to input
                             app.search.type_char(c);
                         }
@@ -81,11 +88,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                         KeyCode::Right => {
                             app.search.move_cursor_one_step(CursorDirection::RIGHT);
-                        }
+                        } */
                         KeyCode::Enter => {
                             if app.search.text_box_is_highlighted {
                                 app.load_wikipedia_search_query();
-                                app.search.text_box_is_highlighted = false;
                             } else {
                                 app.view_selected_article();
                             }
@@ -100,7 +106,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                             app.search.scroll_results(ScrollDirection::DOWN);
                         }
 
-                        _ => {}
+                        _ => {
+                            app.search.handle_key(key);
+                        }
                     },
                     AppState::SearchMenu => match key.code {
                         KeyCode::Esc => {
