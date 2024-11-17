@@ -8,24 +8,21 @@ mod widgets;
 mod wikipedia;
 
 use crate::app::App;
-use app::{ActionMenu, AppState, CursorDirection, ScrollDirection, TypeableState};
+use app::{ActionMenu, AppState, ScrollDirection, TypeableState};
 use caching::CachingSession;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
-    terminal::{size, disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{
+        disable_raw_mode, enable_raw_mode, size, EnterAlternateScreen, LeaveAlternateScreen,
+    },
 };
-use htmd::HtmlToMarkdown;
-use std::{
-    error::Error,
-    io::{Read, Write},
-    time::{Duration, Instant},
-};
-use std::{fs::File, io};
+use dialoguer::Input;
+use std::io;
+use std::{error::Error, time::Duration};
 use tui::backend::CrosstermBackend;
 use tui::layout::Rect;
 use tui::{Terminal, TerminalOptions, Viewport};
-use dialoguer::Input;
 
 const APP_REFRESH_TIME_MILLIS: u64 = 16;
 const APP_DEFAULT_MARGIN: u16 = 2;
@@ -34,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Setup terminal
     let mut fixed_size = false;
     let mut size = size()?;
-    let mut margin:u16 = APP_DEFAULT_MARGIN;
+    let mut margin: u16 = APP_DEFAULT_MARGIN;
     if size.0 < 1 || size.1 < 1 {
         fixed_size = true;
         size = prompt_for_size()?;
@@ -47,7 +44,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let area = Rect::new(0, 0, size.0, size.1);
     let mut terminal = match fixed_size {
-        true => Terminal::with_options(backend, TerminalOptions{viewport: Viewport::fixed(area)})?,
+        true => Terminal::with_options(
+            backend,
+            TerminalOptions {
+                viewport: Viewport::fixed(area),
+            },
+        )?,
         false => Terminal::new(backend)?,
     };
     let mut app = App::new();
@@ -85,25 +87,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                             // Just-in-case exit
                             app.is_running = false
                         }
-                        /* KeyCode::Char(c) => {
-                            // Append character to input
-                            app.search.type_char(c);
-                        }
-                        KeyCode::Backspace => {
-                            app.search.backspace();
-                        }
-                        KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                            app.search.move_cursor_to_start();
-                        }
-                        KeyCode::Left => {
-                            app.search.move_cursor_one_step(CursorDirection::LEFT);
-                        }
-                        KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                            app.search.move_cursor_to_end();
-                        }
-                        KeyCode::Right => {
-                            app.search.move_cursor_one_step(CursorDirection::RIGHT);
-                        } */
                         KeyCode::Enter => {
                             if app.search.text_box_is_highlighted {
                                 app.load_wikipedia_search_query();
@@ -205,60 +188,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     CachingSession::clear_caches()?;
 
-    /*
-    println!("Getting your page...");
-    let start_time = Instant::now();
-
-    let url = "https://en.wikipedia.org/w/rest.php/v1/page/First 100 days of the first Donald Trump presidency/html";
-
-    // "https://en.wikipedia.org/w/api.php?action=parse&page=Presidency_of_Donald_Trump&prop=text&format=json";
-    // let response = reqwest::blocking::get(url)?.json::<WikiPageResponse>()?;
-    let response = reqwest::blocking::get(url)?;
-    let html_content = response.text()?;
-    println!(
-        "Download done in {} seconds",
-        start_time.elapsed().as_millis()
-    );
-
-    // Print the extracted text content
-    // println!("Title: {}", response.parse.title);
-    // println!("Page ID: {}", response.parse.pageid);
-
-    let converter = HtmlToMarkdown::builder()
-        .skip_tags(vec!["script", "style", "table", "sup"])
-        .build();
-
-    match converter.convert(&html_content) {
-        Ok(content) => {
-            // println!("Content:\n{}", content);
-            let mut file = File::create("./earth.md")?;
-            file.write_all(content.as_bytes())?;
-        }
-        Err(e) => {
-            println!("uhoh!!!\n{}", e);
-        }
-    }
-    println!(
-        "Conversion done in {} seconds",
-        start_time.elapsed().as_millis()
-    );
-
-    let mut markdown_text: String = String::new();
-    File::open("./earth.md")?.read_to_string(&mut markdown_text)?;
-    let mut spans = parsing::parse_markdown(&markdown_text);
-
-    println!(
-        "Parsing done in {} seconds",
-        start_time.elapsed().as_millis()
-    );
-
-    spans = wikipedia::remove_unnecessary_spans(spans);
-
-    for span in spans.iter() {
-        println!("{}", span);
-    }
-    */
-
     Ok(())
 }
 
@@ -266,10 +195,10 @@ fn prompt_for_size() -> Result<(u16, u16), std::io::Error> {
     eprintln!("Unable to automatically determine console dimensions.");
     let width = get_dimension("columns");
     let height = get_dimension("rows");
-    return Ok((width, height))
+    return Ok((width, height));
 }
 
-fn get_dimension(dimension_name:&str) -> u16 {
+fn get_dimension(dimension_name: &str) -> u16 {
     loop {
         let input: String = Input::new()
             .with_prompt(format!("Enter {}", dimension_name))
@@ -280,8 +209,7 @@ fn get_dimension(dimension_name:&str) -> u16 {
             Err(_e) => {
                 eprintln!("Invalid input, please enter a positive integer.");
                 continue;
-            },
+            }
         };
-    };
+    }
 }
-
