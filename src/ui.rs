@@ -7,10 +7,8 @@ use crate::styles::Theme;
 use crate::utils::{wrapped_iter_enumerate, WIK_TITLE};
 use crate::widgets::ScrollBar;
 use crate::wikipedia::SearchResult;
-use digest::typenum::Mod;
 use tui::layout::Rect;
 use tui::style::Modifier;
-use tui::widgets::{BorderType, Widget};
 // use crate::widgets::ScrollBar;
 use tui::{
     backend::Backend,
@@ -23,7 +21,7 @@ use tui::{
 
 use substring::Substring;
 
-pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App, margin: u16) {
+pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
     let window_area = frame.size();
     frame.render_widget(
         Block::default().style(app.theme.window_background()),
@@ -31,12 +29,12 @@ pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App, margin: u16) {
     );
     match app.state {
         AppState::Title => draw_title(frame, app),
-        AppState::Search => draw_search(frame, app, margin),
+        AppState::Search => draw_search(frame, app),
         AppState::SearchMenu => draw_menu(frame, app, &app.search_menu),
         AppState::Credit => draw_credit(frame, app),
         AppState::Article => draw_article(frame, app),
         AppState::ArticleMenu => draw_menu(frame, app, &app.article_menu),
-        _ => draw_search(frame, app, margin),
+        // _ => draw_search(frame, app),
     }
 }
 
@@ -130,10 +128,10 @@ fn search_box_widget<'a>(
     .block(text_block)
 }
 
-pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App, margin: u16) {
+pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .margin(margin)
+        .margin(app.config.margin.into())
         .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
         .split(frame.size());
 

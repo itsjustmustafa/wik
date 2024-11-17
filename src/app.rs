@@ -2,12 +2,13 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
+use crate::utils::clargs::Args;
 use crate::utils::{create_shared, remainder, shared_copy};
-use crate::wikipedia::{self, SearchResult, WikiSearchResponse};
+use crate::wikipedia::{self, SearchResult};
 use crate::{caching::CachingSession, utils::Shared};
 
 use std::char;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 pub enum AppState {
     Title,
@@ -198,7 +199,7 @@ pub struct SearchState {
 impl SearchState {
     pub fn currently_loading(&self) -> bool {
         match self.is_loading_query.try_lock() {
-            Ok(is_loading) => (*is_loading),
+            Ok(is_loading) => *is_loading,
             Err(_) => true,
         }
     }
@@ -320,6 +321,7 @@ pub struct App {
     pub is_running: bool,
     pub state: AppState,
     pub theme: Theme,
+    pub config: Args,
 }
 
 impl Default for App {
@@ -359,6 +361,7 @@ impl Default for App {
             is_running: false,
             state: AppState::Title,
             theme: Theme::default(),
+            config: Args::default(),
         };
 
         app.search_menu.options = vec![

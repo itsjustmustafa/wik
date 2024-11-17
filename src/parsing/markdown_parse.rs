@@ -1,6 +1,5 @@
 use crate::parsing::FormattedSpan;
 use regex::Regex;
-use tui::text;
 
 pub fn parse_markdown(text: &str) -> Vec<FormattedSpan> {
     let mut spans: Vec<FormattedSpan> = Vec::new();

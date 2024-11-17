@@ -1,13 +1,12 @@
 use htmd::HtmlToMarkdown;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-use std::clone;
-use std::{error::Error, result, sync::Arc, thread};
+use std::{error::Error, thread};
 use tui::text::{Span, Spans};
 
+use crate::parsing;
 use crate::parsing::FormattedSpan;
-use crate::{app::App, caching::CachingSession, styles::Theme, utils::Shared};
-use crate::{caching, parsing};
+use crate::{caching::CachingSession, styles::Theme, utils::Shared};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SearchResult {
@@ -61,8 +60,8 @@ struct Query {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct WikiSearchResponse {
-    pub query: Query,
+struct WikiSearchResponse {
+    query: Query,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -184,7 +183,7 @@ pub fn remove_unnecessary_spans(mut spans: Vec<FormattedSpan>) -> Vec<FormattedS
     let mut found_see_also_header = false;
     let mut removing_flag = false;
     let flagged_titles = ["Notes", "References"];
-    for (i, span) in spans.iter().enumerate() {
+    for (_, span) in spans.iter().enumerate() {
         if span.is_heading && found_see_also_header {
             removing_flag = true;
         }
