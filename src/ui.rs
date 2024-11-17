@@ -23,7 +23,7 @@ use tui::{
 
 use substring::Substring;
 
-pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
+pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App, margin: u16) {
     let window_area = frame.size();
     frame.render_widget(
         Block::default().style(app.theme.window_background()),
@@ -31,12 +31,12 @@ pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
     );
     match app.state {
         AppState::Title => draw_title(frame, app),
-        AppState::Search => draw_search(frame, app),
+        AppState::Search => draw_search(frame, app, margin),
         AppState::SearchMenu => draw_menu(frame, app, &app.search_menu),
         AppState::Credit => draw_credit(frame, app),
         AppState::Article => draw_article(frame, app),
         AppState::ArticleMenu => draw_menu(frame, app, &app.article_menu),
-        _ => draw_search(frame, app),
+        _ => draw_search(frame, app, margin),
     }
 }
 
@@ -130,10 +130,10 @@ fn search_box_widget<'a>(
     .block(text_block)
 }
 
-fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
+pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App, margin: u16) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .margin(2)
+        .margin(margin)
         .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
         .split(frame.size());
 
