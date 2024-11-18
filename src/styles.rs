@@ -47,6 +47,7 @@ impl Theme {
             .bg(self.secondary)
             .fg(self.negative_text)
             .add_modifier(Modifier::UNDERLINED)
+            .add_modifier(Modifier::BOLD)
     }
 
     pub fn unhighlighted_title_style(&self) -> Style {
