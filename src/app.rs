@@ -8,6 +8,8 @@ use crate::wikipedia::{self, SearchResult};
 use crate::{caching::CachingSession, utils::Shared};
 
 use std::char;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::sync::Arc;
 
 pub enum AppState {
@@ -17,6 +19,7 @@ pub enum AppState {
     Article,
     ArticleMenu,
     Credit,
+    ThemeMenu,
 }
 pub type AppAction = Arc<dyn Fn(&mut App) + Send + Sync>;
 
@@ -77,6 +80,18 @@ pub trait ActionMenu {
     fn get_selected_action(&self) -> AppAction {
         let selected_option = &self.get_options()[self.get_index()];
         selected_option.action_clone()
+    }
+
+    fn handle_key(&mut self, keyevent: KeyEvent) {
+        match keyevent.code {
+            KeyCode::Up => {
+                self.scroll(ScrollDirection::UP);
+            }
+            KeyCode::Down => {
+                self.scroll(ScrollDirection::DOWN);
+            }
+            _ => {}
+        }
     }
 }
 
@@ -310,6 +325,30 @@ pub struct ArticleState {
     pub is_loading_article: Shared<bool>,
 }
 
+pub struct ThemeState {
+    pub themes: Vec<Theme>,
+    pub options: Vec<ActionItem>,
+    pub selected_index: usize,
+}
+
+impl ActionMenu for ThemeState {
+    fn total_options(&self) -> usize {
+        self.options.len()
+    }
+
+    fn set_index(&mut self, new_index: usize) -> () {
+        self.selected_index = new_index;
+    }
+
+    fn get_index(&self) -> usize {
+        self.selected_index
+    }
+
+    fn get_options(&self) -> &Vec<ActionItem> {
+        &self.options
+    }
+}
+
 pub struct App {
     pub title: TitleState,
     pub search: SearchState,
@@ -317,6 +356,7 @@ pub struct App {
     pub credit: CreditState,
     pub article: ArticleState,
     pub article_menu: MenuState,
+    pub theme_menu: ThemeState,
     pub cache: Shared<CachingSession>,
     pub is_running: bool,
     pub state: AppState,
@@ -357,6 +397,11 @@ impl Default for App {
                 selected_index: 0,
                 options: vec![],
             },
+            theme_menu: ThemeState {
+                themes: vec![],
+                selected_index: 0,
+                options: vec![],
+            },
             cache: create_shared(CachingSession::new()),
             is_running: false,
             state: AppState::Title,
@@ -367,6 +412,7 @@ impl Default for App {
         app.search_menu.options = vec![
             ActionItem::new("Back", |app| app.state = AppState::Search),
             ActionItem::new("Credits", |app| app.state = AppState::Credit),
+            ActionItem::new("Themes", |app| app.state = AppState::ThemeMenu),
             ActionItem::new("Quit", |app| app.is_running = false),
         ];
 
@@ -382,6 +428,49 @@ impl Default for App {
             }),
             ActionItem::new("Back to menu", |app| app.state = AppState::SearchMenu),
         ];
+
+        let theme_file_result = File::options().read(true).write(false).open("./themes.txt");
+        if let Ok(theme_file) = theme_file_result {
+            let reader = BufReader::new(theme_file);
+            for line_result in reader.lines() {
+                match line_result {
+                    Ok(line) => {
+                        let line_split: Vec<&str> = line.split(' ').collect();
+                        let maybe_theme_name = line_split.get(0);
+                        let maybe_theme_colors = line_split.get(1);
+                        if let Some(&theme_name) = maybe_theme_name {
+                            if let Some(&theme_colors) = maybe_theme_colors {
+                                app.theme_menu.themes.push(Theme::from_hex_string_series(
+                                    String::from(theme_name),
+                                    String::from(theme_colors),
+                                ));
+                                app.theme_menu.options.push(ActionItem::new(
+                                    theme_name,
+                                    move |app| {
+                                        // app.theme_menu.selected_index = line_index.to_owned();
+                                        app.theme = app.theme_menu.themes
+                                            [app.theme_menu.selected_index]
+                                            .clone();
+                                    },
+                                ));
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        app.theme_menu.themes.push(Theme::from_hex_string_series(
+                            String::from("Normal"),
+                            String::from("2a3138-ffffff-c19c00-13a10e-3b78ff-000000"),
+                        ));
+                        app.theme_menu
+                            .options
+                            .push(ActionItem::new("Normal", move |app| {
+                                app.theme =
+                                    app.theme_menu.themes[app.theme_menu.selected_index].clone();
+                            }));
+                    }
+                }
+            }
+        }
 
         app
     }

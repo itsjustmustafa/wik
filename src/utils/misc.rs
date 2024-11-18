@@ -1,6 +1,8 @@
 use std::ops::{Add, Rem, Sub};
 use std::sync::{Arc, Mutex};
 
+use tui::style::Color;
+
 // pub type
 
 pub type Shared<T> = Arc<Mutex<T>>;
@@ -25,7 +27,7 @@ where
     (((dividend + divisor) % divisor) + divisor) % divisor
 }
 
-pub fn hex_to_rgb(hex: &str) -> Result<(u8, u8, u8), String> {
+pub fn hex_to_rgb(hex: &str) -> Result<Color, String> {
     let hex = hex.trim_start_matches("#");
 
     if hex.len() != 6 {
@@ -36,7 +38,7 @@ pub fn hex_to_rgb(hex: &str) -> Result<(u8, u8, u8), String> {
     let green = u8::from_str_radix(&hex[2..4], 16).map_err(|_| "Invalid green component")?;
     let blue = u8::from_str_radix(&hex[4..6], 16).map_err(|_| "Invalid blue component")?;
 
-    Ok((red, green, blue))
+    Ok(Color::Rgb(red, green, blue))
 }
 
 pub fn wrapped_iter_enumerate<T>(vec: &Vec<T>, start: usize) -> impl Iterator<Item = (usize, &T)> {

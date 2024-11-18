@@ -1,0 +1,12 @@
+Normal 2a3138-ffffff-c19c00-13a10e-3b78ff-000000
+Autumn 2c1d15-ffffff-b74f22-8d6e63-bf5a9e-0e0e0e
+Cosmos 241e30-ffffff-d48a6a-836aad-4c98de-121212
+Mirage 4d3621-ffffff-f0c05a-9c4e30-7896a5-171717
+Garden 28341c-ffffff-d45b9e-6c9e58-71cadc-0a0a0a
+Frosty 2e4233-ffffff-cd8b76-92a882-3e819c-101010
+Sunset 4b3b31-ffffff-f9a826-c97d73-68b5be-121212
+Aurora 22363c-ffffff-f48797-70b78d-738bc6-0d0d0d
+Mystic 352a2e-ffffff-ff7366-bc986a-8aa8bd-131313
+Breeze 0d161a-fbe3e9-db1f48-01949a-004369-e5ddc8
+Pastel 2c2945-fbe3e9-ea8886-6ac7c4-7e6faa-fff4bd
+Philip 1b163e-ffffff-dea5f8-373c8c-4fb870-002d13
