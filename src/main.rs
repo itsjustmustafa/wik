@@ -87,6 +87,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut app = App::new();
     app.is_running = true;
 
+    /*
+    app.theme = Theme::from_hex_string_series(
+        String::from("light"),
+        String::from("e8ebed-1f1f1f-89579b-2e4499-ffb0b2-404040"),
+    );
+    */
+
     // Main loop
     loop {
         if !app.is_running {
@@ -204,7 +211,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                         _ => {}
                     },
-                    // _ => app.is_running = false,
+                    AppState::ThemeMenu => match key.code {
+                        KeyCode::Enter => {
+                            app.theme_menu.get_selected_action()(&mut app);
+                        }
+                        KeyCode::Esc => {
+                            app.state = AppState::Search;
+                        }
+                        _ => app.theme_menu.handle_key(key),
+                    }, // _ => app.is_running = false,
                 }
             }
         }

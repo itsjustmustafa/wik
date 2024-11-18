@@ -34,6 +34,7 @@ pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
         AppState::Credit => draw_credit(frame, app),
         AppState::Article => draw_article(frame, app),
         AppState::ArticleMenu => draw_menu(frame, app, &app.article_menu),
+        AppState::ThemeMenu => draw_theme_selection(frame, app),
         // _ => draw_search(frame, app),
     }
 }
@@ -306,6 +307,26 @@ fn draw_credit<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
     );
 }
 
+fn draw_theme_selection<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
+    let area = centered_rect(50, 50, frame.size());
+
+    let mut credit_paragraph_text = vec![];
+
+    credit_paragraph_text.append(&mut create_option_spans(
+        &app.theme_menu.get_options(),
+        app.theme_menu.get_index(),
+        &app.theme,
+    ));
+
+    frame.render_widget(
+        Paragraph::new(credit_paragraph_text)
+            .style(app.theme.block_border_focus())
+            .block(Block::default().borders(Borders::ALL).title("Themes"))
+            .alignment(Alignment::Center),
+        area,
+    );
+}
+
 fn draw_title<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
     let full_area = centered_rect_by_lengths(40, 11, frame.size());
 
@@ -321,11 +342,13 @@ fn draw_title<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
             //         .borders(Borders::ALL)
             //         .border_type(BorderType::Double),
             // )
+            .style(Style::default().fg(app.theme.text))
             .alignment(Alignment::Center),
         title_areas[0],
     );
 
-    let input_widget = search_box_widget(&app, &app.title, String::from("Search..."));
+    let input_widget = search_box_widget(&app, &app.title, String::from("Search..."))
+        .style(app.theme.block_border_focus());
     frame.render_widget(input_widget, title_areas[1]);
 }
 
