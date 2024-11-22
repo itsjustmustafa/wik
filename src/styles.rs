@@ -24,7 +24,7 @@ impl Default for Theme {
             secondary: Color::Yellow,
             tertiary: Color::Green,
             highlight: Color::LightBlue,
-            negative_text: Color::LightYellow,
+            negative_text: Color::Black,
         }
     }
 }
