@@ -386,7 +386,7 @@ fn draw_article<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
                                                     .add_modifier(Modifier::ITALIC)
                                             },
                                         )
-                                    } else if let Some(link) = &formatted_span.link {
+                                    } else if let Some(_link) = &formatted_span.link {
                                         Span::styled(
                                             formatted_span.text.clone(),
                                             Style::default().add_modifier(Modifier::UNDERLINED),
