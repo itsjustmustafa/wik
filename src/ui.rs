@@ -5,7 +5,7 @@ use crate::app::{ActionItem, ActionMenu, App, AppState, MenuState, TypeableState
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
 use crate::utils::{wrapped_iter_enumerate, WIK_TITLE};
-use crate::widgets::ScrollBar;
+use crate::widgets::{ScrollBar, TextBox};
 use crate::wikipedia::SearchResult;
 use tui::layout::Rect;
 use tui::style::Modifier;
@@ -102,12 +102,8 @@ fn centered_rect_by_lengths(length_x: u16, length_y: u16, r: Rect) -> Rect {
         .split(vertical_layout[1])[1]
 }
 
-fn search_box_widget<'a>(
-    app: &'a App,
-    typeable: &'a impl TypeableState,
-    title: String,
-) -> Paragraph<'a> {
-    let mut input_text = typeable.get_input().to_owned();
+/* fn search_box_widget<'a>(app: &'a App, typeable: &'a impl TypeableState, title: String) -> TextBox {
+    /*     let mut input_text = typeable.get_input().to_owned();
     input_text.push(' ');
     let pre_highlight = input_text.substring(0, typeable.get_cursor_pos());
     let highlight_char =
@@ -126,8 +122,12 @@ fn search_box_widget<'a>(
         Span::styled(highlight_char.to_owned(), app.theme.cursor_style()),
         Span::raw(post_highlight.to_owned()),
     ])])
-    .block(text_block)
-}
+    .block(text_block )*/
+
+    TextBox::new(typeable.get_input(), typeable.get_cursor_pos())
+        .cursor_style(app.theme.cursor_style())
+        .text_style(style)
+} */
 
 pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
     let chunks = Layout::default()
@@ -167,8 +167,11 @@ pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
     );
     */
 
-    let input_widget = search_box_widget(&app, &app.search, String::from("Search Wikipedia"))
-        .style(text_block_style);
+    // let input_widget = search_box_widget(&app, &app.search, String::from("Search Wikipedia"))
+    // .style(text_block_style);
+    let input_widget = TextBox::new(app.search.get_input(), app.search.get_cursor_pos())
+        .cursor_style(app.theme.cursor_style())
+        .text_style(text_block_style);
     frame.render_widget(input_widget, chunks[0]);
 
     let mut is_loading = false;
@@ -347,8 +350,12 @@ fn draw_title<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
         title_areas[0],
     );
 
-    let input_widget = search_box_widget(&app, &app.title, String::from("Search..."))
-        .style(app.theme.block_border_focus());
+    // let input_widget = search_box_widget(&app, &app.title, String::from("Search..."))
+    //     .style(app.theme.block_border_focus());
+    let input_widget = TextBox::new(app.title.get_input(), app.title.get_cursor_pos())
+        .cursor_style(app.theme.cursor_style())
+        .text_style(app.theme.block_border_focus());
+
     frame.render_widget(input_widget, title_areas[1]);
 }
 
