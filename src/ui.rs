@@ -7,22 +7,23 @@ use crate::styles::Theme;
 use crate::utils::{wrapped_iter_enumerate, WIK_TITLE};
 use crate::widgets::{AlphaBox, Eraser, ScrollBar, TextBox};
 use crate::wikipedia::SearchResult;
-use tui::layout::Rect;
-use tui::style::{Color, Modifier};
+use ratatui::layout::Rect;
+use ratatui::style::{Color, Modifier};
+use ratatui::text::Line;
 // use crate::widgets::ScrollBar;
-use tui::{
+use ratatui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::Style,
-    text::{Span, Spans},
+    text::Span,
     widgets::{Block, Borders, Paragraph, Wrap},
     Frame,
 };
 
-use substring::Substring;
+// use substring::Substring;
 
-pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
-    let window_area = frame.size();
+pub fn draw(frame: &mut Frame, app: &App) {
+    let window_area = frame.area();
     frame.render_widget(
         Block::default().style(app.theme.window_background()),
         window_area,
@@ -39,13 +40,13 @@ pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
     }
 }
 
-fn draw_article_menu<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
+fn draw_article_menu(frame: &mut Frame, app: &App) {
     draw_article(frame, app);
     frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.size());
     draw_menu(frame, app, &app.article_menu);
 }
 
-fn draw_search_menu<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
+fn draw_search_menu(frame: &mut Frame, app: &App) {
     draw_search(frame, app);
     frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.size());
     draw_menu(frame, app, &app.search_menu);
@@ -114,34 +115,7 @@ fn centered_rect_by_lengths(length_x: u16, length_y: u16, r: Rect) -> Rect {
         .split(vertical_layout[1])[1]
 }
 
-/* fn search_box_widget<'a>(app: &'a App, typeable: &'a impl TypeableState, title: String) -> TextBox {
-    /*     let mut input_text = typeable.get_input().to_owned();
-    input_text.push(' ');
-    let pre_highlight = input_text.substring(0, typeable.get_cursor_pos());
-    let highlight_char =
-        input_text.substring(typeable.get_cursor_pos(), typeable.get_cursor_pos() + 1);
-    let post_highlight =
-        input_text.substring(typeable.get_cursor_pos() + 1, typeable.get_input().len());
-    let text_block = if title.len() > 0 {
-        Block::default()
-            .borders(Borders::ALL)
-            .title(title.to_owned())
-    } else {
-        Block::default().borders(Borders::ALL)
-    };
-    Paragraph::new(vec![Spans::from(vec![
-        Span::raw(pre_highlight.to_owned()),
-        Span::styled(highlight_char.to_owned(), app.theme.cursor_style()),
-        Span::raw(post_highlight.to_owned()),
-    ])])
-    .block(text_block )*/
-
-    TextBox::new(typeable.get_input(), typeable.get_cursor_pos())
-        .cursor_style(app.theme.cursor_style())
-        .text_style(style)
-} */
-
-pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
+pub fn draw_search(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(app.config.margin.into())
@@ -183,8 +157,8 @@ pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
             // Collect spans into a Vec<Spans>
             // let results = result_guard;
             let selected_index = app.search.selected_index;
-            let all_spans: Vec<Spans> = wrapped_iter_enumerate(&results, app.search.selected_index)
-                .flat_map(|(index, search_result)| -> Vec<Spans<'_>> {
+            let all_spans: Vec<Line> = wrapped_iter_enumerate(&results, app.search.selected_index)
+                .flat_map(|(index, search_result)| -> Vec<Line> {
                     let title_style = if index == selected_index {
                         app.theme.highlighted_title_style()
                     } else {
@@ -201,15 +175,18 @@ pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
                     );
                     if index == selected_index {
                         vec![
-                            Spans::from(vec![title_span]),
-                            SearchResult::highlighted_snippets(&search_result, &app.theme),
-                            Spans::from(vec![Span::raw("")]),
+                            Line::from(vec![title_span]),
+                            Line::from(SearchResult::highlighted_snippets(
+                                &search_result,
+                                &app.theme,
+                            )),
+                            Line::from(vec![Span::raw("")]),
                         ]
                     } else {
-                        vec![Spans::from(vec![title_span])]
+                        vec![Line::from(vec![title_span])]
                     }
                 })
-                .collect(); // Collect spans into a Vec<Spans>
+                .collect(); // Collect spans into a Vec<Line>
 
             let result_chunks = Layout::default()
                 .direction(Direction::Horizontal)
@@ -253,25 +230,25 @@ fn create_option_spans<'a>(
     action_items: &'a Vec<ActionItem>,
     selected_index: usize,
     theme: &'a Theme,
-) -> Vec<Spans<'a>> {
+) -> Vec<Line<'a>> {
     action_items
         .iter()
         .enumerate()
-        .map(|(option_index, option)| -> Spans {
+        .map(|(option_index, option)| -> Line {
             let style = if option_index == selected_index {
                 theme.selected_option()
             } else {
                 theme.unselected_option()
             };
-            Spans::from(Span::styled(option.label(), style))
+            Line::from(Span::styled(option.label(), style))
         })
         .collect()
 }
 
-fn draw_menu<'a, B: Backend>(frame: &mut Frame<B>, app: &App, menu: &MenuState) {
+fn draw_menu(frame: &mut Frame, app: &App, menu: &MenuState) {
     let menu_items = create_option_spans(menu.get_options(), menu.get_index(), &app.theme);
 
-    let area = centered_rect(50, 50, frame.size());
+    let area = centered_rect(50, 50, frame.area());
     frame.render_widget(Eraser {}, area);
     frame.render_widget(
         Paragraph::new(menu_items)
@@ -282,10 +259,10 @@ fn draw_menu<'a, B: Backend>(frame: &mut Frame<B>, app: &App, menu: &MenuState) 
     );
 }
 
-fn draw_credit<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
-    let area = centered_rect(50, 50, frame.size());
+fn draw_credit(frame: &mut Frame, app: &App) {
+    let area = centered_rect(50, 50, frame.area());
 
-    let mut credit_paragraph_text = vec![Spans::from("Made by Mazza :)")];
+    let mut credit_paragraph_text = vec![Line::from("Made by Mazza :)")];
 
     credit_paragraph_text.append(&mut create_option_spans(
         &app.credit.options,
@@ -302,7 +279,7 @@ fn draw_credit<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
     );
 }
 
-fn draw_theme_selection<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
+fn draw_theme_selection(frame: &mut Frame, app: &App) {
     let area = centered_rect(50, 50, frame.size());
 
     let mut credit_paragraph_text = vec![];
@@ -322,7 +299,7 @@ fn draw_theme_selection<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
     );
 }
 
-fn draw_title<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
+fn draw_title(frame: &mut Frame, app: &App) {
     let full_area = centered_rect_by_lengths(40, 11, frame.size());
 
     let title_areas = Layout::default()
@@ -351,8 +328,8 @@ fn draw_title<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
     frame.render_widget(input_widget, title_areas[1]);
 }
 
-fn draw_article<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
-    let article_content: Vec<Spans> = match app.article.is_loading_article.try_lock() {
+fn draw_article(frame: &mut Frame, app: &App) {
+    let article_content: Vec<Line> = match app.article.is_loading_article.try_lock() {
         Ok(loading_result) => match *loading_result {
             false => {
                 let vecs_of_formatted_spans = app
@@ -368,8 +345,8 @@ fn draw_article<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
                 vecs_of_formatted_spans
                     .iter()
                     .enumerate()
-                    .map(|(_, formatted_spans)| -> Spans {
-                        Spans::from(
+                    .map(|(_, formatted_spans)| -> Line {
+                        Line::from(
                             formatted_spans
                                 .iter()
                                 .enumerate()
@@ -400,9 +377,9 @@ fn draw_article<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
                     .collect()
             }
 
-            true => vec![Spans::from(vec![Span::raw("Loading...")])],
+            true => vec![Line::from(vec![Span::raw("Loading...")])],
         },
-        Err(_) => vec![Spans::from(vec![Span::raw("Error loading page...")])],
+        Err(_) => vec![Line::from(vec![Span::raw("Error loading page...")])],
     };
     frame.render_widget(
         Paragraph::new(article_content)

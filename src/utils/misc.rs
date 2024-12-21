@@ -1,7 +1,7 @@
 use std::ops::{Add, Rem, Sub};
 use std::sync::{Arc, Mutex};
 
-use tui::style::Color;
+use ratatui::style::Color;
 
 // pub type
 

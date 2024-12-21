@@ -1,4 +1,6 @@
-use tui::{
+use ratatui::{
+    buffer::Buffer,
+    layout::Rect,
     style::{Modifier, Style},
     widgets::Widget,
 };
@@ -6,7 +8,7 @@ use tui::{
 pub struct Eraser {}
 
 impl Widget for Eraser {
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         for x in (area.x)..(area.width + area.x) {
             for y in (area.y)..(area.height + area.y) {
                 let cell = buf.get_mut(x, y);

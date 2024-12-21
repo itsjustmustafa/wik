@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tui::style::{Color, Modifier, Style};
+use ratatui::style::{Color, Modifier, Style};
 
 use crate::utils::hex_to_rgb;
 
