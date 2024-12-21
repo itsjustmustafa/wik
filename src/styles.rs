@@ -77,11 +77,11 @@ impl Theme {
     }
 
     pub fn block_border_unfocus(&self) -> Style {
-        Style::default().fg(self.text)
+        Style::default().fg(self.text).bg(self.background)
     }
 
     pub fn block_border_focus(&self) -> Style {
-        Style::default().fg(self.secondary)
+        Style::default().fg(self.secondary).bg(self.background)
     }
 
     // pub fn title_

@@ -5,10 +5,10 @@ use crate::app::{ActionItem, ActionMenu, App, AppState, MenuState, TypeableState
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
 use crate::utils::{wrapped_iter_enumerate, WIK_TITLE};
-use crate::widgets::{ScrollBar, TextBox};
+use crate::widgets::{AlphaBox, Eraser, ScrollBar, TextBox};
 use crate::wikipedia::SearchResult;
 use tui::layout::Rect;
-use tui::style::Modifier;
+use tui::style::{Color, Modifier};
 // use crate::widgets::ScrollBar;
 use tui::{
     backend::Backend,
@@ -30,13 +30,25 @@ pub fn draw<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
     match app.state {
         AppState::Title => draw_title(frame, app),
         AppState::Search => draw_search(frame, app),
-        AppState::SearchMenu => draw_menu(frame, app, &app.search_menu),
+        AppState::SearchMenu => draw_search_menu(frame, app),
         AppState::Credit => draw_credit(frame, app),
         AppState::Article => draw_article(frame, app),
-        AppState::ArticleMenu => draw_menu(frame, app, &app.article_menu),
+        AppState::ArticleMenu => draw_article_menu(frame, app),
         AppState::ThemeMenu => draw_theme_selection(frame, app),
         // _ => draw_search(frame, app),
     }
+}
+
+fn draw_article_menu<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
+    draw_article(frame, app);
+    frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.size());
+    draw_menu(frame, app, &app.article_menu);
+}
+
+fn draw_search_menu<B: Backend>(frame: &mut Frame<'_, B>, app: &App) {
+    draw_search(frame, app);
+    frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.size());
+    draw_menu(frame, app, &app.search_menu);
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -147,28 +159,6 @@ pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
         true => app.theme.block_border_unfocus(),
         false => app.theme.block_border_focus(),
     };
-
-    /*
-    let mut input_text = app.search.input.to_owned();
-    input_text.push(' ');
-    let pre_highlight = input_text.substring(0, app.search.cursor_pos);
-    let highlight_char = input_text.substring(app.search.cursor_pos, app.search.cursor_pos + 1);
-    let post_highlight = input_text.substring(app.search.cursor_pos + 1, input_text.len());
-    let input = Paragraph::new(vec![Spans::from(vec![
-        Span::raw(pre_highlight),
-        Span::styled(highlight_char, app.theme.cursor_style()),
-        Span::raw(post_highlight),
-    ])])
-    .style(text_block_style)
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Search Wikipedia"),
-    );
-    */
-
-    // let input_widget = search_box_widget(&app, &app.search, String::from("Search Wikipedia"))
-    // .style(text_block_style);
     let input_widget = TextBox::new(app.search.get_input(), app.search.get_cursor_pos())
         .cursor_style(app.theme.cursor_style())
         .text_style(text_block_style);
@@ -201,11 +191,12 @@ pub fn draw_search<'a, B: Backend>(frame: &mut Frame<B>, app: &App) {
                         app.theme.unhighlighted_title_style()
                     };
                     let title_span = Span::styled(
-                        format!(
-                            "{} - {}",
-                            search_result.title.clone(),
-                            search_result.pageid.clone()
-                        ),
+                        // format!(
+                        //     "{} - {}",
+                        //     search_result.title.clone(),
+                        //     search_result.pageid.clone()
+                        // ),
+                        search_result.title.clone(),
                         title_style,
                     );
                     if index == selected_index {
@@ -281,6 +272,7 @@ fn draw_menu<'a, B: Backend>(frame: &mut Frame<B>, app: &App, menu: &MenuState) 
     let menu_items = create_option_spans(menu.get_options(), menu.get_index(), &app.theme);
 
     let area = centered_rect(50, 50, frame.size());
+    frame.render_widget(Eraser {}, area);
     frame.render_widget(
         Paragraph::new(menu_items)
             .style(app.theme.block_border_focus())
