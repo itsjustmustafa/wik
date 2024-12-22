@@ -18,11 +18,11 @@ use crossterm::{
     },
 };
 use dialoguer::Input;
+use ratatui::backend::CrosstermBackend;
+use ratatui::layout::Rect;
+use ratatui::{Terminal, TerminalOptions, Viewport};
 use std::io;
 use std::{error::Error, time::Duration};
-use tui::backend::CrosstermBackend;
-use tui::layout::Rect;
-use tui::{Terminal, TerminalOptions, Viewport};
 use utils::clargs::{load_arg_from_config, save_arg_to_file, Args};
 
 const APP_REFRESH_TIME_MILLIS: u64 = 16;
@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         true => Terminal::with_options(
             backend,
             TerminalOptions {
-                viewport: Viewport::fixed(area),
+                viewport: Viewport::Fixed(area),
             },
         )?,
         false => Terminal::new(backend)?,

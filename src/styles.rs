@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tui::style::{Color, Modifier, Style};
+use ratatui::style::{Color, Modifier, Style};
 
 use crate::utils::hex_to_rgb;
 
@@ -77,11 +77,11 @@ impl Theme {
     }
 
     pub fn block_border_unfocus(&self) -> Style {
-        Style::default().fg(self.text)
+        Style::default().fg(self.text).bg(self.background)
     }
 
     pub fn block_border_focus(&self) -> Style {
-        Style::default().fg(self.secondary)
+        Style::default().fg(self.secondary).bg(self.background)
     }
 
     // pub fn title_

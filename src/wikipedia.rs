@@ -1,8 +1,10 @@
 use htmd::HtmlToMarkdown;
+use html2text::from_read;
+use mdka::from_html;
+use ratatui::text::Span;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::{error::Error, thread};
-use tui::text::{Span, Spans};
 
 use crate::parsing;
 use crate::parsing::FormattedSpan;
@@ -24,7 +26,7 @@ impl SearchResult {
     pub fn highlighted_snippets<'a>(
         search_results: &'a SearchResult,
         theme: &'a Theme,
-    ) -> Spans<'a> {
+    ) -> Vec<Span<'a>> {
         // The search results from the Wikipedia API encloses the parts of the snippet
         // that matches the search term with the values in OPENING_TAG and then CLOSING_TAG,
         // This provides the snippet with the matches highlighted.
@@ -50,7 +52,7 @@ impl SearchResult {
                 spans.push(Span::styled(part, theme.unhighlighted_snippet_style()));
             }
         }
-        return Spans::from(spans);
+        return spans;
     }
 }
 

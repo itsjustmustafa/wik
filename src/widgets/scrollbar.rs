@@ -1,4 +1,6 @@
-use tui::{
+use ratatui::{
+    buffer::Buffer,
+    layout::Rect,
     style::{Color, Style},
     widgets::Widget,
 };
@@ -48,7 +50,7 @@ impl ScrollBar {
 }
 
 impl Widget for ScrollBar {
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         for y in 0..self.height.min(area.height as usize) {
             buf.set_string(area.x as u16, area.y + y as u16, "║", self._bar_style);
         }
