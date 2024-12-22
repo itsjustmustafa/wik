@@ -1,4 +1,4 @@
-use tui::{style::Color, widgets::Widget};
+use ratatui::{buffer::Buffer, layout::Rect, style::Color, widgets::Widget};
 
 use crate::utils::blendedColor;
 
@@ -14,7 +14,7 @@ impl AlphaBox {
 }
 
 impl Widget for AlphaBox {
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         for x in (area.x)..(area.width + area.x) {
             for y in (area.y)..(area.height + area.y) {
                 let cell = buf.get_mut(x, y);

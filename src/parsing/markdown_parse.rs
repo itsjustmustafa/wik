@@ -1,4 +1,4 @@
-use crate::parsing::FormattedSpan;
+use crate::{parsing::FormattedSpan, utils::cut_off_from_char};
 use regex::Regex;
 
 pub fn parse_markdown(text: &str) -> Vec<FormattedSpan> {
@@ -6,7 +6,7 @@ pub fn parse_markdown(text: &str) -> Vec<FormattedSpan> {
 
     let heading_regex = Regex::new("^(?<hashes>#{1,6})\\s+(?<text>.*)").unwrap();
     let link_regex =
-        Regex::new("\\[(?<text>.*?)\\]\\(\\./([^\\s]+) \\\"(?<link>[^\\\"]+)\\\"\\)").unwrap();
+        Regex::new(r#"\[(?P<text>[^\]]+)\]\((?P<link>(\\\)|\"[^\"]+\"|[^\)])+)\)"#).unwrap();
     let image_regex = Regex::new("^\\[\\!\\[").unwrap();
 
     let mut index = 0;
@@ -49,10 +49,15 @@ pub fn parse_markdown(text: &str) -> Vec<FormattedSpan> {
                     None => String::from(""),
                 };
 
-                let link_part = match link_capture.name("link") {
+                let mut link_part = match link_capture.name("link") {
                     Some(link_match) => link_match.as_str().to_string(),
                     None => String::from(""),
                 };
+
+                link_part = cut_off_from_char(cut_off_from_char(&link_part, '\"'), '#')
+                    .replace("\\)", ")")
+                    .replace("\\(", "(")
+                    .to_string();
 
                 // Text before the link
                 if current_pos < start_pos {

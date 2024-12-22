@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use tui::{
-    style::{Color, Style},
-    widgets::{Block, Borders, Widget},
+use ratatui::{
+    buffer::Buffer, layout::Rect, style::{Color, Style}, widgets::{Block, Borders, Widget}
 };
 
 pub struct TextBox {
@@ -36,7 +35,7 @@ impl TextBox {
 }
 
 impl Widget for TextBox {
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         // for x in (area.x) .. (area.width + area.x){
 
         // }
