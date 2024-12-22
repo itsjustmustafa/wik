@@ -8,6 +8,7 @@ use std::{error::Error, thread};
 
 use crate::parsing;
 use crate::parsing::FormattedSpan;
+use crate::utils::wrapped_iter_enumerate;
 use crate::{caching::CachingSession, styles::Theme, utils::Shared};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -169,13 +170,25 @@ pub fn load_article_to_app(
     title: String,
     loading_flag: Shared<bool>,
     markdown_spans: Shared<Vec<FormattedSpan>>,
+    link_indices: Shared<Vec<usize>>,
     cache: Shared<CachingSession>,
 ) {
     *loading_flag.lock().unwrap() = true;
     thread::spawn(move || {
         if let Ok(results) = get_wikipedia_page(title.as_str(), cache) {
-            *markdown_spans.lock().unwrap() = results;
+            *markdown_spans.lock().unwrap() = results.clone();
             *loading_flag.lock().unwrap() = false;
+            *link_indices.lock().unwrap() = results
+                .iter()
+                .filter(|formatted_span| {
+                    if let Some(_) = formatted_span.link {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+                .map(|formatted_span| formatted_span.index)
+                .collect::<Vec<usize>>();
         }
     });
 }

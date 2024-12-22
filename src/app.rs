@@ -1,4 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use ratatui::layout::Direction;
+use ratatui::text::Span;
 
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
@@ -8,6 +10,7 @@ use crate::wikipedia::{self, SearchResult};
 use crate::{caching::CachingSession, utils::Shared};
 
 use std::char;
+use std::collections::{LinkedList, VecDeque};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::sync::Arc;
@@ -323,6 +326,64 @@ pub struct ArticleState {
     pub article_name: String,
     pub markdown_spans: Shared<Vec<FormattedSpan>>,
     pub is_loading_article: Shared<bool>,
+    pub link_span_indices: Shared<Vec<usize>>,
+    pub selected_link_index: usize,
+    pub vertical_scroll: usize,
+    back_history: VecDeque<String>,
+    forward_history: VecDeque<String>,
+}
+
+impl ArticleState {
+    pub fn scroll_link(&mut self, direction: ScrollDirection) {
+        if let Ok(indices_results) = self.link_span_indices.try_lock() {
+            let total_indices = (*indices_results).len();
+            if total_indices > 0 {
+                let increment = match direction {
+                    ScrollDirection::UP => total_indices.saturating_sub(1),
+                    ScrollDirection::DOWN => total_indices.saturating_add(1),
+                };
+                self.selected_link_index =
+                    remainder(self.selected_link_index + increment, total_indices);
+            }
+        }
+    }
+
+    pub fn scroll_vertically(&mut self, direction: ScrollDirection) {
+        match direction {
+            ScrollDirection::UP => self.vertical_scroll = self.vertical_scroll.saturating_sub(1),
+            ScrollDirection::DOWN => self.vertical_scroll = self.vertical_scroll.saturating_add(1),
+        }
+    }
+
+    pub fn get_selected_link(&self) -> Option<String> {
+        if let Ok(indices_results) = self.link_span_indices.try_lock() {
+            if let Some(&index) = (*indices_results).get(self.selected_link_index) {
+                if let Ok(spans) = self.markdown_spans.try_lock() {
+                    if let Some(span) = (*spans).get(index) {
+                        return span.link.clone();
+                    }
+                }
+            }
+        }
+        return None;
+    }
+
+    pub fn go_back_a_page(&mut self) {
+        // take the last off back_history, put it at front of forward_history
+        if self.back_history.len() <= 1 {
+            return;
+        }
+        if let Some(title) = self.back_history.pop_back() {
+            self.forward_history.push_front(title);
+        }
+    }
+
+    pub fn go_forward_a_page(&mut self) {
+        // take the first off forward_history, put it at back of back_history
+        if let Some(title) = self.forward_history.pop_front() {
+            self.back_history.push_back(title);
+        }
+    }
 }
 
 pub struct ThemeState {
@@ -392,6 +453,11 @@ impl Default for App {
                 article_name: String::from("Philosophy"),
                 markdown_spans: create_shared(Vec::new()),
                 is_loading_article: create_shared(false),
+                link_span_indices: create_shared(vec![]),
+                selected_link_index: 0,
+                vertical_scroll: 0,
+                back_history: VecDeque::new(),
+                forward_history: VecDeque::new(),
             },
             article_menu: MenuState {
                 selected_index: 0,
@@ -410,15 +476,17 @@ impl Default for App {
         };
 
         app.search_menu.options = vec![
-            ActionItem::new("Back", |app| app.state = AppState::Search),
-            ActionItem::new("Credits", |app| app.state = AppState::Credit),
+            ActionItem::new("Resume", |app| app.state = AppState::Search),
             ActionItem::new("Themes", |app| app.state = AppState::ThemeMenu),
+            ActionItem::new("Credits", |app| app.state = AppState::Credit),
             ActionItem::new("Quit", |app| app.is_running = false),
         ];
 
         app.article_menu.options = vec![
-            ActionItem::new("Back", |app| app.state = AppState::Article),
+            ActionItem::new("Resume", |app| app.state = AppState::Article),
             ActionItem::new("Search", |app| app.state = AppState::Search),
+            ActionItem::new("← Go back", |app| app.go_to_previous_article()),
+            ActionItem::new("Go forward →", |app| app.go_to_next_article()),
             ActionItem::new("Quit", |app| app.is_running = false),
         ];
 
@@ -502,23 +570,59 @@ impl App {
         self.search.text_box_is_highlighted = false;
     }
 
-    pub fn view_selected_article(&mut self) {
+    fn set_article_page(&mut self, title: String) {
+        self.article.article_name = title.clone();
+        let markdown_spans = shared_copy(&self.article.markdown_spans);
+        let loading_flag = shared_copy(&self.article.is_loading_article);
+        let caching_session = shared_copy(&self.cache);
+        let link_indices = shared_copy(&self.article.link_span_indices);
+
+        wikipedia::load_article_to_app(
+            title.clone(),
+            loading_flag,
+            markdown_spans,
+            link_indices,
+            caching_session,
+        );
+    }
+
+    pub fn view_selected_article_from_search(&mut self) {
         if let Some(title) = self.search.selected_search_result_title() {
             self.state = AppState::Article;
-            self.article.article_name = title.clone();
-
-            let markdown_spans = shared_copy(&self.article.markdown_spans);
-            let loading_flag = shared_copy(&self.article.is_loading_article);
-            let caching_session = shared_copy(&self.cache);
-
-            wikipedia::load_article_to_app(
-                title.clone(),
-                loading_flag,
-                markdown_spans,
-                caching_session,
-            );
+            self.set_article_page(title.clone());
+            self.article.back_history.clear();
+            self.article.forward_history.clear();
+            self.article.back_history.push_back(title.clone());
+            // self.article.history.push_back(title.clone());
         } else {
             self.state = AppState::SearchMenu;
         }
+    }
+    pub fn view_selected_article_from_selected_link(&mut self) {
+        if let Some(title) = self.article.get_selected_link() {
+            self.article.selected_link_index = 0;
+            self.article.vertical_scroll = 0;
+            let formatted_title = title.replace("_", " ").replace("./", "");
+            self.set_article_page(formatted_title.clone());
+            self.article.forward_history.clear();
+            self.article.back_history.push_back(formatted_title.clone());
+            // self.article.history.push_back(formatted_title.clone());
+        }
+    }
+
+    fn load_page_from_history(&mut self) {
+        if let Some(title) = self.article.back_history.back() {
+            self.set_article_page(title.clone());
+        }
+    }
+
+    pub fn go_to_previous_article(&mut self) {
+        self.article.go_back_a_page();
+        self.load_page_from_history();
+    }
+
+    pub fn go_to_next_article(&mut self) {
+        self.article.go_forward_a_page();
+        self.load_page_from_history();
     }
 }
