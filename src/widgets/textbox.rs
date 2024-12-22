@@ -1,7 +1,8 @@
-use std::sync::Arc;
-
 use ratatui::{
-    buffer::Buffer, layout::Rect, style::{Color, Style}, widgets::{Block, Borders, Widget}
+    buffer::Buffer,
+    layout::Rect,
+    style::{Color, Style},
+    widgets::{Block, Borders, Widget},
 };
 
 pub struct TextBox {
@@ -9,7 +10,6 @@ pub struct TextBox {
     cursor_pos: usize,
     text_style: Style,
     cursor_style: Style,
-    title: String,
 }
 
 impl TextBox {
@@ -19,7 +19,6 @@ impl TextBox {
             cursor_pos,
             text_style: Style::default().fg(Color::Black).bg(Color::White),
             cursor_style: Style::default().fg(Color::White).bg(Color::Black),
-            title: String::from(""),
         }
     }
 
@@ -40,13 +39,12 @@ impl Widget for TextBox {
 
         // }
         let inner_area = {
-            let mut block = Block::default().borders(Borders::ALL);
+            let block = Block::default().borders(Borders::ALL);
             let inner_area = block.inner(area);
             block.render(area, buf);
             inner_area
         };
 
-        let mut cursor_pos: usize = self.cursor_pos;
         let text_to_render = format!("{} ", self.text.clone().as_str());
         let text_len = text_to_render.len();
         if self.cursor_pos < inner_area.width as usize {

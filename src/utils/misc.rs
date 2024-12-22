@@ -46,7 +46,7 @@ pub fn hex_to_rgb(hex: &str) -> Result<Color, String> {
     Ok(Color::Rgb(red, green, blue))
 }
 
-pub fn blendColorValue(a: u8, b: u8, t: u8) -> u8 {
+pub fn blend_color_value(a: u8, b: u8, t: u8) -> u8 {
     let norm_t = (t as f64) / 100.0;
     let a_squared = (a as f64).powi(2);
     let b_squared = (b as f64).powi(2);
@@ -54,15 +54,15 @@ pub fn blendColorValue(a: u8, b: u8, t: u8) -> u8 {
     return blended_value.round() as u8;
 }
 
-pub fn blendedColor(base_color: Color, blend_color: Color, alpha: u8) -> Color {
+pub fn blended_color(base_color: Color, blend_color: Color, alpha: u8) -> Color {
     match try_color_as_rgb(base_color) {
         Color::Rgb(r1, g1, b1) => match try_color_as_rgb(blend_color) {
             Color::Rgb(r2, g2, b2) => {
                 // return blend_color;
                 return Color::Rgb(
-                    blendColorValue(r1, r2, alpha),
-                    blendColorValue(g1, g2, alpha),
-                    blendColorValue(b1, b2, alpha),
+                    blend_color_value(r1, r2, alpha),
+                    blend_color_value(g1, g2, alpha),
+                    blend_color_value(b1, b2, alpha),
                 );
             }
             _ => {

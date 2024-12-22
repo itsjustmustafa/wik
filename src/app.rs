@@ -1,6 +1,4 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::layout::Direction;
-use ratatui::text::Span;
 
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
@@ -10,7 +8,7 @@ use crate::wikipedia::{self, SearchResult};
 use crate::{caching::CachingSession, utils::Shared};
 
 use std::char;
-use std::collections::{LinkedList, VecDeque};
+use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::sync::Arc;

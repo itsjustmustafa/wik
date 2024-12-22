@@ -12,7 +12,6 @@ use ratatui::style::{Color, Modifier};
 use ratatui::text::Line;
 // use crate::widgets::ScrollBar;
 use ratatui::{
-    backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::Style,
     text::Span,

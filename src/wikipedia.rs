@@ -1,6 +1,4 @@
 use htmd::HtmlToMarkdown;
-use html2text::from_read;
-use mdka::from_html;
 use ratatui::text::Span;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
@@ -8,7 +6,6 @@ use std::{error::Error, thread};
 
 use crate::parsing;
 use crate::parsing::FormattedSpan;
-use crate::utils::wrapped_iter_enumerate;
 use crate::{caching::CachingSession, styles::Theme, utils::Shared};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
