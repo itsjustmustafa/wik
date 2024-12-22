@@ -3,7 +3,12 @@ use std::sync::{Arc, Mutex};
 
 use ratatui::style::Color;
 
-// pub type
+pub const WIK_TITLE: &str = r"
+▀██ ▀██ ▀█▀ ▀█▀  ██  ▀██     
+  ██  ███   █   ▄▄▄   ██  ▄▄ 
+   ██  ██  █     ██   ██ ▄▀  
+    ███ ███      ██   ██▀█▄  
+     █   █      ▄██▄ ▄██▄ ██▄";
 
 pub type Shared<T> = Arc<Mutex<T>>;
 
@@ -70,14 +75,6 @@ pub fn blendedColor(base_color: Color, blend_color: Color, alpha: u8) -> Color {
     }
 }
 
-pub fn wrapped_iter_enumerate<T>(vec: &Vec<T>, start: usize) -> impl Iterator<Item = (usize, &T)> {
-    let len = vec.len();
-    (0..len).map(move |i| {
-        let index = (start + i) % len;
-        (index, &vec[index])
-    })
-}
-
 pub fn try_color_as_rgb(color: Color) -> Color {
     match color {
         Color::Black => return Color::Rgb(0, 0, 0),
@@ -103,9 +100,14 @@ pub fn try_color_as_rgb(color: Color) -> Color {
     return color;
 }
 
-pub const WIK_TITLE: &str = r"
-▀██ ▀██ ▀█▀ ▀█▀  ██  ▀██     
-  ██  ███   █   ▄▄▄   ██  ▄▄ 
-   ██  ██  █     ██   ██ ▄▀  
-    ███ ███      ██   ██▀█▄  
-     █   █      ▄██▄ ▄██▄ ██▄";
+pub fn wrapped_iter_enumerate<T>(vec: &Vec<T>, start: usize) -> impl Iterator<Item = (usize, &T)> {
+    let len = vec.len();
+    (0..len).map(move |i| {
+        let index = (start + i) % len;
+        (index, &vec[index])
+    })
+}
+
+pub fn cut_off_from_char(text: &str, delimiter: char) -> &str {
+    text.splitn(2, delimiter).next().unwrap_or(&text).trim()
+}

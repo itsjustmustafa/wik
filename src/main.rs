@@ -105,6 +105,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Event::Key(key) = event::read()? {
                 match app.state {
                     AppState::Title => match key.code {
+                        // MARK: - Title State
                         KeyCode::Enter => {
                             app.state = AppState::Search;
                             app.search.input = app.title.input.clone();
@@ -118,6 +119,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     },
                     AppState::Search => match key.code {
+                        // MARK: - Search State
                         KeyCode::Esc => {
                             // Enter Escape menu, from where one can exit normally
                             app.state = AppState::SearchMenu;
@@ -126,15 +128,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                             // Just-in-case exit
                             app.is_running = false
                         }
+                        // MARK: - the josh mann bookmark
                         KeyCode::Enter => {
                             if app.search.text_box_is_highlighted {
                                 app.load_wikipedia_search_query();
                             } else {
-                                app.view_selected_article();
+                                app.view_selected_article_from_search();
                             }
-                        }
-                        KeyCode::F(2) => {
-                            app.view_selected_article();
                         }
                         KeyCode::Up => {
                             app.search.scroll_results(ScrollDirection::UP);
@@ -148,6 +148,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     },
                     AppState::SearchMenu => match key.code {
+                        // MARK: - Search Menu State
                         KeyCode::Esc => {
                             app.state = AppState::Search;
                         }
@@ -171,6 +172,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         _ => {}
                     },
                     AppState::Credit => match key.code {
+                        // MARK: - Credit State
                         KeyCode::Esc => {
                             app.state = AppState::SearchMenu;
                         }
@@ -189,12 +191,29 @@ fn main() -> Result<(), Box<dyn Error>> {
                         _ => {}
                     },
                     AppState::Article => match key.code {
+                        // MARK: - Article State
                         KeyCode::Esc => {
                             app.state = AppState::ArticleMenu;
+                        }
+                        KeyCode::Left => {
+                            app.article.scroll_link(ScrollDirection::UP);
+                        }
+                        KeyCode::Right => {
+                            app.article.scroll_link(ScrollDirection::DOWN);
+                        }
+                        KeyCode::Up => {
+                            app.article.scroll_vertically(ScrollDirection::UP);
+                        }
+                        KeyCode::Down => {
+                            app.article.scroll_vertically(ScrollDirection::DOWN);
+                        }
+                        KeyCode::Enter => {
+                            app.view_selected_article_from_selected_link();
                         }
                         _ => {}
                     },
                     AppState::ArticleMenu => match key.code {
+                        // MARK: - Article Menu State
                         KeyCode::Esc => {
                             app.state = AppState::Article;
                         }
@@ -212,12 +231,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                         _ => {}
                     },
                     AppState::ThemeMenu => match key.code {
+                        // MARK: - Theme State
                         KeyCode::Enter => {
                             app.theme_menu.get_selected_action()(&mut app);
                         }
                         KeyCode::Esc => {
                             app.state = AppState::Search;
+                            // app.article.selected_link_index += 1;
                         }
+                        // KeyCode::Left => {}
                         _ => app.theme_menu.handle_key(key),
                     }, // _ => app.is_running = false,
                 }

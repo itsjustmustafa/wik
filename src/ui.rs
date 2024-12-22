@@ -42,13 +42,13 @@ pub fn draw(frame: &mut Frame, app: &App) {
 
 fn draw_article_menu(frame: &mut Frame, app: &App) {
     draw_article(frame, app);
-    frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.size());
+    frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.area());
     draw_menu(frame, app, &app.article_menu);
 }
 
 fn draw_search_menu(frame: &mut Frame, app: &App) {
     draw_search(frame, app);
-    frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.size());
+    frame.render_widget(AlphaBox::new(Color::DarkGray, 50), frame.area());
     draw_menu(frame, app, &app.search_menu);
 }
 
@@ -120,7 +120,7 @@ pub fn draw_search(frame: &mut Frame, app: &App) {
         .direction(Direction::Vertical)
         .margin(app.config.margin.into())
         .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
-        .split(frame.size());
+        .split(frame.area());
 
     // Search input box
     let text_box_is_highlighted = app.search.text_box_is_highlighted;
@@ -280,7 +280,7 @@ fn draw_credit(frame: &mut Frame, app: &App) {
 }
 
 fn draw_theme_selection(frame: &mut Frame, app: &App) {
-    let area = centered_rect(50, 50, frame.size());
+    let area = centered_rect(50, 50, frame.area());
 
     let mut credit_paragraph_text = vec![];
 
@@ -300,7 +300,7 @@ fn draw_theme_selection(frame: &mut Frame, app: &App) {
 }
 
 fn draw_title(frame: &mut Frame, app: &App) {
-    let full_area = centered_rect_by_lengths(40, 11, frame.size());
+    let full_area = centered_rect_by_lengths(40, 11, frame.area());
 
     let title_areas = Layout::default()
         .constraints(vec![Constraint::Min(0), Constraint::Length(3)])
@@ -342,6 +342,12 @@ fn draw_article(frame: &mut Frame, app: &App) {
                     .map(|slice| -> Vec<FormattedSpan> { slice.to_vec() })
                     .collect::<Vec<Vec<FormattedSpan>>>();
 
+                let link_span_indices = app.article.link_span_indices.lock().unwrap().clone();
+
+                let selected_index = link_span_indices
+                    .get(app.article.selected_link_index)
+                    .unwrap_or(&0);
+
                 vecs_of_formatted_spans
                     .iter()
                     .enumerate()
@@ -365,7 +371,15 @@ fn draw_article(frame: &mut Frame, app: &App) {
                                     } else if let Some(_link) = &formatted_span.link {
                                         Span::styled(
                                             formatted_span.text.clone(),
-                                            Style::default().add_modifier(Modifier::UNDERLINED),
+                                            if selected_index.eq(&formatted_span.index) {
+                                                app.theme
+                                                    .highlighted_snippet_style()
+                                                    .add_modifier(Modifier::UNDERLINED)
+                                            } else {
+                                                app.theme
+                                                    .unhighlighted_snippet_style()
+                                                    .add_modifier(Modifier::UNDERLINED)
+                                            },
                                         )
                                     } else {
                                         Span::raw(formatted_span.text.clone())
@@ -389,7 +403,8 @@ fn draw_article(frame: &mut Frame, app: &App) {
                     .borders(Borders::ALL)
                     .title(app.article.article_name.clone()),
             )
-            .wrap(Wrap { trim: true }),
-        frame.size(),
+            .wrap(Wrap { trim: true })
+            .scroll((app.article.vertical_scroll as u16, 0)),
+        frame.area(),
     );
 }
