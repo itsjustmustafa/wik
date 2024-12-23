@@ -3,7 +3,7 @@ name = "wik"
 version = "0.1.0"
 authors = ["Mustafa Barodawala"]
 edition = "2021"
-description = "A Wikipedia browser in the terminal, for inquisitive the CLI power-user."
+description = "A Wikipedia browser in the terminal, for the inquisitive CLI power-user."
 
 [dependencies]
 crossterm = "0.28.1"
@@ -22,4 +22,5 @@ dialoguer = "0.11.0"
 clap = { version = "4.5.21", features = ["derive"] }
 mdka = "1.2.10"
 html2text = "0.13.6"
-ratatui = { version = "0.29.0", features = ["serde"] }
+# ratatui = { version = "0.29.0", features = ["serde"] }
+ratatui = { version = "0.29.0", features = ["serde", "unstable"] }

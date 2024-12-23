@@ -308,11 +308,6 @@ fn draw_title(frame: &mut Frame, app: &App) {
 
     frame.render_widget(
         Paragraph::new(WIK_TITLE)
-            // .block(
-            //     Block::default()
-            //         .borders(Borders::ALL)
-            //         .border_type(BorderType::Double),
-            // )
             .style(Style::default().fg(app.theme.text))
             .alignment(Alignment::Center),
         title_areas[0],
@@ -394,16 +389,27 @@ fn draw_article(frame: &mut Frame, app: &App) {
         },
         Err(_) => vec![Line::from(vec![Span::raw("Error loading page...")])],
     };
-    frame.render_widget(
-        Paragraph::new(article_content)
-            .style(app.theme.block_border_focus())
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(app.article.article_name.clone()),
-            )
-            .wrap(Wrap { trim: true })
-            .scroll((app.article.vertical_scroll as u16, 0)),
-        frame.area(),
-    );
+
+    let mut article_paragraph = Paragraph::new(article_content)
+        .style(app.theme.block_border_focus())
+        .wrap(Wrap { trim: true });
+
+    let total_lines_of_article = article_paragraph.line_count(frame.area().width);
+
+    let scroll_amount = total_lines_of_article.min(app.article.vertical_scroll) as u16;
+    // let scroll_amount = app.article.vertical_scroll as u16;
+
+    let article_block = Block::default().borders(Borders::ALL).title(format!(
+        "{} - {} & {} => {}",
+        app.article.article_name.clone(),
+        total_lines_of_article.to_string(),
+        app.article.vertical_scroll.to_string(),
+        scroll_amount.to_string()
+    ));
+
+    article_paragraph = article_paragraph
+        .scroll((scroll_amount, 0))
+        .block(article_block);
+
+    frame.render_widget(article_paragraph, frame.area());
 }
