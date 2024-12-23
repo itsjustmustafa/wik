@@ -2,6 +2,14 @@
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/itsjustmustafa/wik/rust.yml)
 
+```
+▀██ ▀██ ▀█▀ ▀█▀  ██  ▀██     
+  ██  ███   █   ▄▄▄   ██  ▄▄ 
+   ██  ██  █     ██   ██ ▄▀  
+    ███ ███      ██   ██▀█▄  
+     █   █      ▄██▄ ▄██▄ ██▄
+```
+
 The Wikipedia browser for the CLI power user.
 
 <!-- ![Wik Demo](media/wik_demo.gif) -->
