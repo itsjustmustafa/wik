@@ -31,11 +31,14 @@ const APP_REFRESH_TIME_MILLIS: u64 = 16;
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = Args::parse();
 
+    let mut app = App::new();
+    app.is_running = true;
+
     // Check if the user has saved configurations
     if let Some(loaded_args) = load_arg_from_config() {
         // If no args were provided, then use the saved args
-        if args == Args::default() {
-            args = loaded_args;
+        if args.is_default_configs() {
+            args.load_from(loaded_args);
         } else {
             if ask_yes_or_no("Save your config to file?") {
                 save_arg_to_file(&args)?;
@@ -70,6 +73,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.margin = get_dimension("margin size");
     }
 
+    if let Some(query) = args.search {
+        app.search_and_load(query.clone());
+    }
+
+    if let Some(title) = args.page {
+        // try getting user requested page
+        // app.search.input = title.clone();
+        app.try_getting_page(title.clone());
+    }
+
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
@@ -84,8 +97,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         )?,
         false => Terminal::new(backend)?,
     };
-    let mut app = App::new();
-    app.is_running = true;
 
     /*
     app.theme = Theme::from_hex_string_series(
@@ -107,9 +118,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     AppState::Title => match key.code {
                         // MARK: - Title State
                         KeyCode::Enter => {
-                            app.state = AppState::Search;
-                            app.search.input = app.title.input.clone();
-                            app.load_wikipedia_search_query();
+                            // app.state = AppState::Search;
+                            app.search_and_load(app.title.input.clone());
+                            // app.search.input = app.title.input.clone();
+                            // app.load_wikipedia_search_query();
                         }
                         KeyCode::Esc => {
                             app.is_running = false;

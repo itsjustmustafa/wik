@@ -323,8 +323,9 @@ impl ActionMenu for CreditState {
 pub struct ArticleState {
     pub article_name: String,
     pub markdown_spans: Shared<Vec<FormattedSpan>>,
-    pub is_loading_article: Shared<bool>,
+    pub has_loaded_article: Shared<bool>,
     pub link_span_indices: Shared<Vec<usize>>,
+    pub is_valid_page: Shared<bool>,
     pub selected_link_index: usize,
     pub vertical_scroll: usize,
     back_history: VecDeque<String>,
@@ -421,6 +422,7 @@ pub struct App {
     pub state: AppState,
     pub theme: Theme,
     pub config: Args,
+    pub debug_text: String,
 }
 
 impl Default for App {
@@ -450,8 +452,9 @@ impl Default for App {
             article: ArticleState {
                 article_name: String::from("Philosophy"),
                 markdown_spans: create_shared(Vec::new()),
-                is_loading_article: create_shared(false),
+                has_loaded_article: create_shared(false),
                 link_span_indices: create_shared(vec![]),
+                is_valid_page: create_shared(true),
                 selected_link_index: 0,
                 vertical_scroll: 0,
                 back_history: VecDeque::new(),
@@ -471,6 +474,7 @@ impl Default for App {
             state: AppState::Title,
             theme: Theme::default(),
             config: Args::default(),
+            debug_text: String::from(""),
         };
 
         app.search_menu.options = vec![
@@ -568,19 +572,52 @@ impl App {
         self.search.text_box_is_highlighted = false;
     }
 
-    fn set_article_page(&mut self, title: String) {
+    pub fn search_and_load(&mut self, title: String) {
+        self.state = AppState::Search;
+        self.search.input = title;
+        self.load_wikipedia_search_query();
+    }
+
+    pub fn try_getting_page(&mut self, title: String) {
+        // load the page, if a Page is found, return Ok, else Err
+        self.set_article_page(title.clone());
+
+        let mut is_valid_page = false;
+        loop {
+            match self.article.has_loaded_article.try_lock() {
+                Ok(loaded_result) => match *loaded_result {
+                    true => {
+                        is_valid_page = *self.article.is_valid_page.lock().unwrap();
+                        break;
+                    }
+                    _ => continue,
+                },
+                _ => continue,
+            }
+        }
+        if is_valid_page {
+            self.state = AppState::Article;
+            return;
+        }
+        self.search_and_load(title.clone());
+    }
+
+    pub fn set_article_page(&mut self, title: String) {
+        // *self.article.has_loaded_article.lock().unwrap() = false;
+
         self.article.article_name = title.clone();
         let markdown_spans = shared_copy(&self.article.markdown_spans);
-        let loading_flag = shared_copy(&self.article.is_loading_article);
-        let caching_session = shared_copy(&self.cache);
+        let has_loaded_flag = shared_copy(&self.article.has_loaded_article);
+        let cache = shared_copy(&self.cache);
         let link_indices = shared_copy(&self.article.link_span_indices);
-
+        let is_valid_page = shared_copy(&self.article.is_valid_page);
         wikipedia::load_article_to_app(
             title.clone(),
-            loading_flag,
+            has_loaded_flag,
             markdown_spans,
             link_indices,
-            caching_session,
+            is_valid_page,
+            cache,
         );
     }
 

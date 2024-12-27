@@ -10,6 +10,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, PartialEq, Parser, Serialize, Deserialize)]
 #[command(version, about, long_about = None)]
 pub struct Args {
+    /// Search query for Wikipedia page (eg. hotdogs)
+    #[arg(short, long)]
+    pub search: Option<String>,
+    /// Name of specific page to be loaded
+    #[arg(short, long)]
+    pub page: Option<String>,
     /// Number of rows for display (default to None - gets terminal's rows)
     #[arg(short, long)]
     pub rows: Option<u16>,
@@ -24,10 +30,24 @@ pub struct Args {
 impl Default for Args {
     fn default() -> Self {
         Self {
+            search: None,
+            page: None,
             rows: None,
             cols: None,
             margin: 0,
         }
+    }
+}
+
+impl Args {
+    pub fn is_default_configs(&self) -> bool {
+        self.rows.is_none() && self.cols.is_none() && (self.margin == 0)
+    }
+
+    pub fn load_from(&mut self, other: Args) {
+        self.rows = other.rows;
+        self.cols = other.cols;
+        self.margin = other.margin;
     }
 }
 

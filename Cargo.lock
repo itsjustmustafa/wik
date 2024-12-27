@@ -393,7 +393,7 @@ dependencies = [
  "console",
  "shell-words",
  "tempfile",
- "thiserror 1.0.68",
+ "thiserror",
  "zeroize",
 ]
 
@@ -668,22 +668,8 @@ version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad1642def6e8e4dc182941f35454f7d2af917787f91f3f5133300030b41006d0"
 dependencies = [
- "html5ever 0.27.0",
+ "html5ever",
  "markup5ever_rcdom",
-]
-
-[[package]]
-name = "html2text"
-version = "0.13.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bf7722c2ffdd62628b6e13065b6ab6cf154a236bd476c6e89af1352d745b83e"
-dependencies = [
- "html5ever 0.29.0",
- "markup5ever 0.14.0",
- "nom",
- "tendril",
- "thiserror 2.0.8",
- "unicode-width 0.2.0",
 ]
 
 [[package]]
@@ -694,21 +680,7 @@ checksum = "c13771afe0e6e846f1e67d038d4cb29998a6779f93c809212e4e9c32efd244d4"
 dependencies = [
  "log",
  "mac",
- "markup5ever 0.12.1",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "html5ever"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e15626aaf9c351bc696217cbe29cb9b5e86c43f8a46b5e2f5c6c5cf7cb904ce"
-dependencies = [
- "log",
- "mac",
- "markup5ever 0.14.0",
+ "markup5ever",
  "proc-macro2",
  "quote",
  "syn",
@@ -1039,7 +1011,7 @@ dependencies = [
  "combine",
  "jni-sys",
  "log",
- "thiserror 1.0.68",
+ "thiserror",
  "walkdir",
  "windows-sys 0.45.0",
 ]
@@ -1139,39 +1111,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "markup5ever"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82c88c6129bd24319e62a0359cb6b958fa7e8be6e19bb1663bc396b90883aca5"
-dependencies = [
- "log",
- "phf",
- "phf_codegen",
- "string_cache",
- "string_cache_codegen",
- "tendril",
-]
-
-[[package]]
 name = "markup5ever_rcdom"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edaa21ab3701bfee5099ade5f7e1f84553fd19228cf332f13cd6e964bf59be18"
 dependencies = [
- "html5ever 0.27.0",
- "markup5ever 0.12.1",
+ "html5ever",
+ "markup5ever",
  "tendril",
  "xml5ever",
-]
-
-[[package]]
-name = "mdka"
-version = "1.2.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65e86d148a94989de0269b5be793d5b1e0e62dc774ebd98c829368447b834f50"
-dependencies = [
- "html5ever 0.27.0",
- "markup5ever_rcdom",
 ]
 
 [[package]]
@@ -1185,12 +1133,6 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
-
-[[package]]
-name = "minimal-lexical"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "miniz_oxide"
@@ -1242,16 +1184,6 @@ name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
-
-[[package]]
-name = "nom"
-version = "7.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
-dependencies = [
- "memchr",
- "minimal-lexical",
-]
 
 [[package]]
 name = "objc-sys"
@@ -1574,7 +1506,7 @@ checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
 dependencies = [
  "getrandom",
  "libredox",
- "thiserror 1.0.68",
+ "thiserror",
 ]
 
 [[package]]
@@ -1983,15 +1915,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "substring"
-version = "1.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42ee6433ecef213b2e72f587ef64a2f5943e7cd16fbd82dbe8bc07486c534c86"
-dependencies = [
- "autocfg",
-]
-
-[[package]]
 name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2079,16 +2002,7 @@ version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02dd99dc800bbb97186339685293e1cc5d9df1f8fae2d0aecd9ff1c77efea892"
 dependencies = [
- "thiserror-impl 1.0.68",
-]
-
-[[package]]
-name = "thiserror"
-version = "2.0.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08f5383f3e0071702bf93ab5ee99b52d26936be9dedd9413067cbdcddcb6141a"
-dependencies = [
- "thiserror-impl 2.0.8",
+ "thiserror-impl",
 ]
 
 [[package]]
@@ -2096,17 +2010,6 @@ name = "thiserror-impl"
 version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7c61ec9a6f64d2793d8a45faba21efbe3ced62a886d44c36a009b2b519b4c7e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "2.0.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2f357fcec90b3caef6623a099691be676d033b40a058ac95d2a6ade6fa0c943"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2424,11 +2327,8 @@ dependencies = [
  "clap",
  "crossterm",
  "dialoguer",
- "digest",
  "dirs",
  "htmd",
- "html2text",
- "mdka",
  "rand",
  "ratatui",
  "regex",
@@ -2436,7 +2336,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "substring",
  "webbrowser",
 ]
 
@@ -2735,7 +2634,7 @@ checksum = "9bbb26405d8e919bc1547a5aa9abc95cbfa438f04844f5fdd9dc7596b748bf69"
 dependencies = [
  "log",
  "mac",
- "markup5ever 0.12.1",
+ "markup5ever",
 ]
 
 [[package]]

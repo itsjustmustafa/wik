@@ -137,6 +137,9 @@ pub fn get_wikipedia_page(
 
     match page_data_response {
         Some(page_data) => {
+            if page_data.markdown_content.starts_with("{") {
+                return Err("Page does not exist".into());
+            }
             let mut spans = parsing::parse_markdown(&page_data.markdown_content);
             spans = remove_unnecessary_spans(spans);
             Ok(spans)
@@ -165,16 +168,16 @@ pub fn load_search_query_to_app(
 
 pub fn load_article_to_app(
     title: String,
-    loading_flag: Shared<bool>,
+    has_loaded_flag: Shared<bool>,
     markdown_spans: Shared<Vec<FormattedSpan>>,
     link_indices: Shared<Vec<usize>>,
+    is_valid_page: Shared<bool>,
     cache: Shared<CachingSession>,
 ) {
-    *loading_flag.lock().unwrap() = true;
+    *has_loaded_flag.lock().unwrap() = false;
     thread::spawn(move || {
         if let Ok(results) = get_wikipedia_page(title.as_str(), cache) {
             *markdown_spans.lock().unwrap() = results.clone();
-            *loading_flag.lock().unwrap() = false;
             *link_indices.lock().unwrap() = results
                 .iter()
                 .filter(|formatted_span| {
@@ -186,7 +189,20 @@ pub fn load_article_to_app(
                 })
                 .map(|formatted_span| formatted_span.index)
                 .collect::<Vec<usize>>();
+            *is_valid_page.lock().unwrap() = true;
+        } else {
+            *markdown_spans.lock().unwrap() = vec![FormattedSpan {
+                index: 0,
+                text: String::from("Page not found."),
+                is_heading: true,
+                heading_level: 1,
+                link: None,
+                is_break: false,
+            }];
+            *is_valid_page.lock().unwrap() = false;
+            *link_indices.lock().unwrap() = vec![];
         }
+        *has_loaded_flag.lock().unwrap() = true;
     });
 }
 
