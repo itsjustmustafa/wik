@@ -19,8 +19,6 @@ use ratatui::{
     Frame,
 };
 
-// use substring::Substring;
-
 pub fn draw(frame: &mut Frame, app: &App) {
     let window_area = frame.area();
     frame.render_widget(
@@ -36,6 +34,12 @@ pub fn draw(frame: &mut Frame, app: &App) {
         AppState::ArticleMenu => draw_article_menu(frame, app),
         AppState::ThemeMenu => draw_theme_selection(frame, app),
         // _ => draw_search(frame, app),
+    }
+
+    // Render debug text
+    if app.debug_text.len() > 0 {
+        let debug_paragraph = Paragraph::new(app.debug_text.clone());
+        frame.render_widget(debug_paragraph, frame.area());
     }
 }
 
@@ -328,9 +332,9 @@ fn draw_title(frame: &mut Frame, app: &App) {
 }
 
 fn draw_article(frame: &mut Frame, app: &App) {
-    let article_content: Vec<Line> = match app.article.is_loading_article.try_lock() {
+    let article_content: Vec<Line> = match app.article.has_loaded_article.try_lock() {
         Ok(loading_result) => match *loading_result {
-            false => {
+            true => {
                 let vecs_of_formatted_spans = app
                     .article
                     .markdown_spans
@@ -390,7 +394,7 @@ fn draw_article(frame: &mut Frame, app: &App) {
                     .collect()
             }
 
-            true => vec![Line::from(vec![Span::raw("Loading...")])],
+            _ => vec![Line::from(vec![Span::raw("Loading...")])],
         },
         Err(_) => vec![Line::from(vec![Span::raw("Error loading page...")])],
     };
