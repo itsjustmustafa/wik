@@ -582,7 +582,7 @@ impl App {
         // load the page, if a Page is found, return Ok, else Err
         self.set_article_page(title.clone());
 
-        let mut is_valid_page = false;
+        let is_valid_page: bool;
         loop {
             match self.article.has_loaded_article.try_lock() {
                 Ok(loaded_result) => match *loaded_result {
