@@ -1,4 +1,5 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use ratatui::symbols::line;
 
 use crate::parsing::FormattedSpan;
 use crate::styles::Theme;
@@ -67,7 +68,9 @@ pub trait ActionMenu {
 
     fn scroll(&mut self, scroll_direction: ScrollDirection) -> () {
         let total_options = self.total_options();
-
+        if total_options == 0 {
+            return;
+        }
         match scroll_direction {
             ScrollDirection::DOWN => self.set_index(remainder(self.get_index() + 1, total_options)),
             ScrollDirection::UP => self.set_index(
@@ -503,43 +506,37 @@ impl Default for App {
         if let Ok(theme_file) = theme_file_result {
             let reader = BufReader::new(theme_file);
             for line_result in reader.lines() {
-                match line_result {
-                    Ok(line) => {
-                        let line_split: Vec<&str> = line.split(' ').collect();
-                        let maybe_theme_name = line_split.get(0);
-                        let maybe_theme_colors = line_split.get(1);
-                        if let Some(&theme_name) = maybe_theme_name {
-                            if let Some(&theme_colors) = maybe_theme_colors {
-                                app.theme_menu.themes.push(Theme::from_hex_string_series(
-                                    String::from(theme_name),
-                                    String::from(theme_colors),
-                                ));
-                                app.theme_menu.options.push(ActionItem::new(
-                                    theme_name,
-                                    move |app| {
-                                        // app.theme_menu.selected_index = line_index.to_owned();
-                                        app.theme = app.theme_menu.themes
-                                            [app.theme_menu.selected_index]
-                                            .clone();
-                                    },
-                                ));
-                            }
-                        }
+                if let Ok(line) = line_result {
+                    let line_split: Vec<&str> = line.split(' ').collect();
+                    let maybe_theme_name = line_split.get(0);
+                    let maybe_theme_colours = line_split.get(1);
+                    // if let Some(&theme_colours) = maybe_theme_colours {
+                    if maybe_theme_colours.is_none() {
+                        break;
                     }
-                    Err(_) => {
-                        app.theme_menu.themes.push(Theme::from_hex_string_series(
-                            String::from("Normal"),
-                            String::from("2a3138-ffffff-c19c00-13a10e-3b78ff-000000"),
-                        ));
-                        app.theme_menu
-                            .options
-                            .push(ActionItem::new("Normal", move |app| {
-                                app.theme =
-                                    app.theme_menu.themes[app.theme_menu.selected_index].clone();
-                            }));
+                    if maybe_theme_name.is_none() {
+                        break;
                     }
+                    app.theme_menu.themes.push(Theme::from_hex_string_series(
+                        String::from(maybe_theme_name.unwrap().to_owned()),
+                        String::from(maybe_theme_colours.unwrap().to_owned()),
+                    ));
+                    // }
                 }
             }
+        }
+        if app.theme_menu.themes.len() == 0 {
+            app.theme_menu.themes.push(Theme::from_hex_string_series(
+                "Normal".to_string(),
+                "2a3138-ffffff-c19c00-13a10e-3b78ff-000000".to_string(),
+            ));
+        }
+        for theme in app.theme_menu.themes.iter() {
+            app.theme_menu
+                .options
+                .push(ActionItem::new(&theme.name, move |app| {
+                    app.theme = app.theme_menu.themes[app.theme_menu.selected_index].clone()
+                }));
         }
 
         app

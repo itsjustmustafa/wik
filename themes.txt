@@ -1,4 +1,5 @@
 Normal 2a3138-ffffff-c19c00-13a10e-3b78ff-000000
+Bright 272822-fdfff1-fd971f-a6e22e-66d9ef-161613
 Autumn 2c1d15-ffffff-b74f22-8d6e63-bf5a9e-0e0e0e
 Cosmos 241e30-ffffff-d48a6a-836aad-4c98de-121212
 Mirage 4d3621-ffffff-f0c05a-9c4e30-7896a5-171717
